@@ -5,6 +5,7 @@ import dao.PrestitoDao;
 import dao.UtenteDao;
 import jakarta.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class Archivio {
@@ -27,17 +28,24 @@ public class Archivio {
     }
 
     public void rimuoviElementoCatalogo(String isbn) {
-        Catalogo c = catalogoDao.getByIsbn(isbn);
+        Catalogo c = catalogoDao.findByIsbn(isbn);
         if (c != null) {
-            catalogoDao.remove(isbn);
+            List<Prestito> prestitiAssociati = prestitoDao.findPrestitiByCatalogo(c);
+            if (prestitiAssociati.isEmpty()) {
+                catalogoDao.remove(isbn);
+                System.out.println("Elemento rimosso.");
+            } else {
+                System.out.println("Impossibile rimuovere: esistono prestiti associati a questo elemento.");
+            }
         } else {
             System.out.println("Elemento con ISBN " + isbn + " non trovato.");
         }
     }
 
+
     // Ricerca per ISBN
     public Catalogo ricercaPerIsbn(String isbn) {
-        return catalogoDao.getByIsbn(isbn);
+        return catalogoDao.findByIsbn(isbn);
     }
 
     // Ricerca per anno pubblicazione
@@ -46,7 +54,7 @@ public class Archivio {
     }
 
     // Ricerca per autore
-    public List<Catalogo> ricercaPerAutore(String autore) {
+    public List<Libro> ricercaPerAutore(String autore) {
         return catalogoDao.findByAutore(autore);
     }
 
@@ -75,6 +83,22 @@ public class Archivio {
 
     public void aggiungiPrestito(Prestito prestito) {
         prestitoDao.save(prestito);
+    }
+
+    public void restituisciPrestito(int prestitoId, LocalDate dataRestituzione) {
+        prestitoDao.effettuaRestituzione(prestitoId, dataRestituzione);
+    }
+
+    public boolean isElementoInPrestito(String isbn) {
+        Catalogo elemento = catalogoDao.findByIsbn(isbn);
+        if (elemento == null) return false;
+
+        List<Prestito> prestiti = prestitoDao.findPrestitiByCatalogo(elemento);
+        return prestiti.stream().anyMatch(p -> p.getDataRestituzioneEffettiva() == null);
+    }
+
+    public Prestito getPrestitoById(int id) {
+        return prestitoDao.getById(id);
     }
 
 

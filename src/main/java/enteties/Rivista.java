@@ -4,8 +4,10 @@ import enumerations.Periodicita;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "riviste")
 public class Rivista extends Catalogo{
     @Enumerated(EnumType.STRING)
     private Periodicita periodicita;

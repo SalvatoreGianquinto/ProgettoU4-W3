@@ -2,6 +2,7 @@ package dao;
 
 import enteties.Utente;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 
 public class UtenteDao {
     private EntityManager em;
@@ -35,7 +36,7 @@ public class UtenteDao {
             return em.createQuery("SELECT u FROM Utente u WHERE u.numeroTessera = :numeroTessera", Utente.class)
                     .setParameter("numeroTessera", numeroTessera)
                     .getSingleResult();
-        } catch (jakarta.persistence.NoResultException e) {
+        } catch (NoResultException e) {
             return null;
         }
     }

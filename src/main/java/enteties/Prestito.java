@@ -5,11 +5,13 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "prestiti")
 public class Prestito {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToOne
+    @JoinColumn(name = "utente_id")
     private Utente utente;
     @ManyToOne
     @JoinColumn(name = "elemento_prestato")

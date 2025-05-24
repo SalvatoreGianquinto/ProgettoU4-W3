@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "libro")
+@Table(name = "libri")
 public class Libro extends Catalogo {
     private String autore;
     private String genere;

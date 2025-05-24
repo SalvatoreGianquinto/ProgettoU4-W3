@@ -1,5 +1,6 @@
 package dao;
 
+import enteties.Catalogo;
 import enteties.Prestito;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -49,4 +50,25 @@ public class PrestitoDao {
         query.setParameter("oggi", LocalDate.now());
         return query.getResultList();
     }
+
+    public void effettuaRestituzione(int prestitoId, LocalDate dataRestituzioneEffettiva) {
+        em.getTransaction().begin();
+        int updatedCount = em.createQuery(
+                        "UPDATE Prestito p SET p.dataRestituzioneEffettiva = :dataRestituzione WHERE p.id = :id")
+                .setParameter("dataRestituzione", dataRestituzioneEffettiva)
+                .setParameter("id", prestitoId)
+                .executeUpdate();
+        em.getTransaction().commit();
+
+        if (updatedCount == 0) {
+            System.out.println("Prestito con ID " + prestitoId + " non trovato o già restituito.");
+        }
+    }
+
+    public List<Prestito> findPrestitiByCatalogo(Catalogo catalogo) {
+        return em.createQuery("SELECT p FROM Prestito p WHERE p.elementoPrestato = :catalogo", Prestito.class)
+                .setParameter("catalogo", catalogo)
+                .getResultList();
+    }
+
 }

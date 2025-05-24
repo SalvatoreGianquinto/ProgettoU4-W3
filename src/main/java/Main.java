@@ -30,161 +30,269 @@ public class Main {
             System.out.println("8 - Prestiti scaduti e non restituiti");
             System.out.println("9 - Aggiungi utente");
             System.out.println("10 - Aggiungi prestito");
+            System.out.println("11 - Restituisci prestito");
             System.out.println("0 - Esci");
 
             String scelta = scanner.nextLine().trim();
 
             switch (scelta) {
                 case "1":
-                    // Aggiungi elemento
                     System.out.print("Libro o rivista? ");
                     String tipo = scanner.nextLine().trim().toLowerCase();
+
                     System.out.print("ISBN: ");
                     String isbn = scanner.nextLine().trim();
+
+                    if (archivio.ricercaPerIsbn(isbn) != null) {
+                        System.out.println("ISBN già esistente. Elemento non aggiunto.");
+                        break;
+                    }
+
                     System.out.print("Titolo: ");
                     String titolo = scanner.nextLine().trim();
-                    System.out.print("Anno: ");
-                    int anno = Integer.parseInt(scanner.nextLine().trim());
-                    System.out.print("Numero pagine: ");
-                    int pagine = Integer.parseInt(scanner.nextLine().trim());
+                    if (titolo.isEmpty()) {
+                        System.out.println("Titolo non può essere vuoto.");
+                        break;
+                    }
+
+                    int anno, pagine;
+                    try {
+                        System.out.print("Anno: ");
+                        anno = Integer.parseInt(scanner.nextLine().trim());
+                        System.out.print("Numero pagine: ");
+                        pagine = Integer.parseInt(scanner.nextLine().trim());
+
+                        if (anno <= 0 || pagine <= 0) {
+                            System.out.println("Anno e pagine devono essere maggiori di zero.");
+                            break;
+                        }
+
+                    } catch (NumberFormatException e) {
+                        System.out.println("Anno o numero di pagine non validi.");
+                        break;
+                    }
 
                     if (tipo.equals("libro")) {
                         System.out.print("Autore: ");
-                        String autore = scanner.nextLine().trim();
+                        String autoreLibro = scanner.nextLine().trim();
                         System.out.print("Genere: ");
                         String genere = scanner.nextLine().trim();
-                        Libro libro = new Libro(isbn, titolo, anno, pagine, autore, genere);
-                        archivio.aggiungiElementoCatalogo(libro);
+
+                        if (autoreLibro.isEmpty() || genere.isEmpty()) {
+                            System.out.println("Autore e genere non possono essere vuoti.");
+                            break;
+                        }
+
+                        archivio.aggiungiElementoCatalogo(new Libro(isbn, titolo, anno, pagine, autoreLibro, genere));
                         System.out.println("Libro aggiunto.");
                     } else if (tipo.equals("rivista")) {
-                        System.out.print("Periodicità (SETTIMANALE, MENSILE, SEMESTRALE): ");
-                        Periodicita periodicita = Periodicita.valueOf(scanner.nextLine().trim().toUpperCase());
-                        Rivista rivista = new Rivista(isbn, titolo, anno, pagine, periodicita);
-                        archivio.aggiungiElementoCatalogo(rivista);
-                        System.out.println("Rivista aggiunta.");
+                        try {
+                            System.out.print("Periodicità (SETTIMANALE, MENSILE, SEMESTRALE): ");
+                            Periodicita periodicita = Periodicita.valueOf(scanner.nextLine().trim().toUpperCase());
+                            archivio.aggiungiElementoCatalogo(new Rivista(isbn, titolo, anno, pagine, periodicita));
+                            System.out.println("Rivista aggiunta.");
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Periodicità non valida.");
+                        }
                     } else {
-                        System.out.println("Tipo non valido.");
+                        System.out.println("Tipo non riconosciuto. Inserire 'libro' o 'rivista'.");
                     }
                     break;
+
 
                 case "2":
-                    // Ricerca per ISBN
                     System.out.print("ISBN: ");
                     String isbnRicerca = scanner.nextLine().trim();
-                    Catalogo trovato = archivio.ricercaPerIsbn(isbnRicerca);
-                    if (trovato != null) {
-                        System.out.println(trovato);
-                    } else {
-                        System.out.println("Elemento non trovato.");
+                    if (isbnRicerca.isEmpty()) {
+                        System.out.println("ISBN non può essere vuoto.");
+                        break;
                     }
+                    Catalogo trovato = archivio.ricercaPerIsbn(isbnRicerca);
+                    System.out.println(trovato != null ? trovato : "Elemento non trovato.");
                     break;
 
+
                 case "3":
-                    // Rimuovi elemento
                     System.out.print("ISBN da rimuovere: ");
                     String isbnDel = scanner.nextLine().trim();
-                    archivio.rimuoviElementoCatalogo(isbnDel);
-                    System.out.println("Rimosso se presente.");
+                    if (!isbnDel.isEmpty()) {
+                        archivio.rimuoviElementoCatalogo(isbnDel);
+                        System.out.println("Elemento rimosso (se presente).");
+                    } else {
+                        System.out.println("ISBN non valido.");
+                    }
                     break;
 
                 case "4":
-                    // Ricerca per anno
                     System.out.print("Anno: ");
-                    int annoRicerca = Integer.parseInt(scanner.nextLine().trim());
-                    List<Catalogo> perAnno = archivio.ricercaPerAnno(annoRicerca);
-                    for (Catalogo c : perAnno) {
-                        System.out.println(c);
+                    try {
+                        int annoRicerca = Integer.parseInt(scanner.nextLine().trim());
+                        List<Catalogo> perAnno = archivio.ricercaPerAnno(annoRicerca);
+                        if (perAnno.isEmpty()) System.out.println("Nessun risultato.");
+                        else perAnno.forEach(System.out::println);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Anno non valido.");
                     }
+
                     break;
 
                 case "5":
-                    // Ricerca per autore
                     System.out.print("Autore: ");
                     String autore = scanner.nextLine().trim();
-                    List<Catalogo> perAutore = archivio.ricercaPerAutore(autore);
-                    for (Catalogo c : perAutore) {
-                        System.out.println(c);
+                    if (autore.isEmpty()) {
+                        System.out.println("Autore non può essere vuoto.");
+                        break;
+                    }
+                    List<Libro> perAutore = archivio.ricercaPerAutore(autore);
+                    if (perAutore.isEmpty()) {
+                        System.out.println("Nessun libro trovato per l'autore indicato.");
+                    } else {
+                        perAutore.forEach(System.out::println);
                     }
                     break;
-
                 case "6":
-                    // Ricerca per titolo
                     System.out.print("Titolo (o parte): ");
                     String titoloLike = scanner.nextLine().trim();
+                    if (titoloLike.isEmpty()) {
+                        System.out.println("Titolo non può essere vuoto.");
+                        break;
+                    }
                     List<Catalogo> perTitolo = archivio.ricercaPerTitolo(titoloLike);
-                    for (Catalogo c : perTitolo) {
-                        System.out.println(c);
+                    if (perTitolo.isEmpty()) {
+                        System.out.println("Nessun elemento trovato per il titolo indicato.");
+                    } else {
+                        perTitolo.forEach(System.out::println);
                     }
                     break;
 
                 case "7":
-                    // Prestiti in corso per tessera
                     System.out.print("Numero tessera: ");
                     String tessera = scanner.nextLine().trim();
-                    List<Prestito> prestiti = archivio.prestitiInCorsoPerUtente(tessera);
-                    for (Prestito p : prestiti) {
-                        System.out.println(p);
+                    if (tessera.isEmpty()) {
+                        System.out.println("Numero tessera non valido.");
+                        break;
                     }
+                    List<Prestito> prestiti = archivio.prestitiInCorsoPerUtente(tessera);
+                    System.out.println(prestiti.isEmpty() ? "Nessun prestito in corso." : "");
+                    prestiti.forEach(System.out::println);
                     break;
+
 
                 case "8":
                     // Prestiti scaduti non restituiti
                     List<Prestito> scaduti = archivio.prestitiScadutiNonRestituiti();
-                    for (Prestito p : scaduti) {
-                        System.out.println(p);
+                    if (scaduti.isEmpty()) {
+                        System.out.println("Nessun prestito scaduto trovato.");
+                    } else {
+                        for (Prestito p : scaduti) {
+                            System.out.println(p);
+                        }
                     }
                     break;
 
+
                 case "9":
-                    // Aggiungi utente
                     System.out.print("Numero tessera: ");
                     String nTessera = scanner.nextLine().trim();
+
+                    if (nTessera.isEmpty()) {
+                        System.out.println("Numero tessera non può essere vuoto.");
+                        break;
+                    }
+
+                    if (archivio.getUtenteByNumeroTessera(nTessera) != null) {
+                        System.out.println("Utente con questo numero di tessera già esistente.");
+                        break;
+                    }
+
                     System.out.print("Nome: ");
                     String nome = scanner.nextLine().trim();
                     System.out.print("Cognome: ");
                     String cognome = scanner.nextLine().trim();
+
+                    if (nome.isEmpty() || cognome.isEmpty()) {
+                        System.out.println("Nome e cognome non possono essere vuoti.");
+                        break;
+                    }
+
                     System.out.print("Data di nascita (YYYY-MM-DD): ");
-                    LocalDate dataNascita = LocalDate.parse(scanner.nextLine().trim());
-                    Utente utente = new Utente(nome, cognome, dataNascita, nTessera);
-                    archivio.aggiungiUtente(utente);
-                    System.out.println("Utente aggiunto.");
+
+                    try {
+                        LocalDate dataNascita = LocalDate.parse(scanner.nextLine().trim());
+                        archivio.aggiungiUtente(new Utente(nome, cognome, dataNascita, nTessera));
+                        System.out.println("Utente aggiunto.");
+                    } catch (Exception e) {
+                        System.out.println("Formato data non valido.");
+                    }
                     break;
 
                 case "10":
-                    // Aggiungi prestito
                     System.out.print("Numero tessera utente: ");
                     String tess = scanner.nextLine().trim();
-
                     System.out.print("ISBN del libro/rivista: ");
                     String isbnPrestito = scanner.nextLine().trim();
 
                     Utente utentePrestito = archivio.getUtenteByNumeroTessera(tess);
                     Catalogo elementoPrestato = archivio.ricercaPerIsbn(isbnPrestito);
 
-                    if (utentePrestito != null && elementoPrestato != null) {
-                        System.out.print("Inserisci data inizio prestito (YYYY-MM-DD): ");
-                        String dataInizioStr = scanner.nextLine().trim();
-                        LocalDate dataInizioPrestito;
+                    if (utentePrestito == null || elementoPrestato == null) {
+                        System.out.println("Utente o elemento non trovato.");
+                        break;
+                    }
 
-                        try {
-                            dataInizioPrestito = LocalDate.parse(dataInizioStr);
-                        } catch (Exception e) {
-                            System.out.println("Formato data non valido. Usata la data odierna.");
-                            dataInizioPrestito = LocalDate.now();
+                    if (archivio.isElementoInPrestito(isbnPrestito)) {
+                        System.out.println("Elemento attualmente in prestito. Impossibile prestarlo di nuovo.");
+                        break;
+                    }
+
+                    System.out.print("Inserisci data inizio prestito (YYYY-MM-DD): ");
+                    LocalDate dataInizioPrestito;
+
+                    try {
+                        dataInizioPrestito = LocalDate.parse(scanner.nextLine().trim());
+                        if (dataInizioPrestito.isAfter(LocalDate.now())) {
+                            System.out.println("La data di inizio prestito non può essere nel futuro.");
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Data non valida. Uso la data odierna.");
+                        dataInizioPrestito = LocalDate.now();
+                    }
+
+                    LocalDate dataRestituzionePrevista = dataInizioPrestito.plusDays(30);
+                    archivio.aggiungiPrestito(new Prestito(utentePrestito, elementoPrestato, dataInizioPrestito, dataRestituzionePrevista));
+                    System.out.println("Prestito aggiunto.");
+                    break;
+
+
+
+                case "11":
+                    System.out.print("ID prestito da restituire: ");
+                    try {
+                        int idPrestito = Integer.parseInt(scanner.nextLine().trim());
+                        Prestito p = archivio.getPrestitoById(idPrestito);
+
+                        if (p == null) {
+                            System.out.println("Prestito non trovato.");
+                            break;
                         }
 
-                        LocalDate dataRestituzionePrevista = dataInizioPrestito.plusDays(30);
+                        if (p.getDataRestituzioneEffettiva() != null) {
+                            System.out.println("Prestito già restituito il " + p.getDataRestituzioneEffettiva() + ".");
+                            break;
+                        }
 
-                        Prestito nuovoPrestito = new Prestito(utentePrestito, elementoPrestato, dataInizioPrestito, dataRestituzionePrevista);
-                        archivio.aggiungiPrestito(nuovoPrestito);
-                        System.out.println("Prestito aggiunto con successo.");
-                    } else {
-                        System.out.println("Utente o elemento non trovato.");
+                        archivio.restituisciPrestito(idPrestito, LocalDate.now());
+                        System.out.println("Restituzione registrata.");
+                    } catch (NumberFormatException e) {
+                        System.out.println("ID prestito non valido.");
                     }
                     break;
 
+
                 case "0":
                     System.out.println("Uscito");
+                    System.exit(0);
                     break;
 
                 default:
